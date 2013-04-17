@@ -22,10 +22,10 @@ class Kart(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
         self.image, self.rect = load_image('kart.bmp', -1)
         self.original = self.image
+        self.original_rect = self.rect
 
-        
         self.speed = 0.0
-        self.max_speed = 30.0
+        self.max_speed = 15.0
         self.accel_rate = 1.0
         self.brake_rate = 2.0
         self.coast_rate = 1.05
@@ -42,6 +42,9 @@ class Kart(pygame.sprite.Sprite):
         self.jumping = 0
         self.spinning = 0
 
+    def reset(self):
+        self.rect = self.original_rect
+
     def accel(self):
         if self.speed < self.max_speed:
             self.speed += self.accel_rate
@@ -57,7 +60,6 @@ class Kart(pygame.sprite.Sprite):
             self.speed /= self.coast_rate
         else:
             self.speed = 0
-        print "coasting"
 
     def turn(self, direction):
         if self.turn_speed < self.turn_max:
@@ -75,13 +77,10 @@ class Kart(pygame.sprite.Sprite):
         pass
 
     def _move(self):
-        self.position = self.last_position
-        x, y = self.position
+        self.last_position = self.position
         x = self.speed * math.cos(math.radians(self.heading))
         y = self.speed * math.sin(math.radians(self.heading))
-        print "x: " + repr(x) + "y: " + repr(y)
-
-        newpos = self.rect.move((x, y))
+        newpos = self.rect.move((y, x))
         self.rect = newpos
 
         center = self.rect.center
@@ -113,7 +112,7 @@ def main():
        a loop until the function returns."""
 #Initialize Everything
     pygame.init()
-    screen = pygame.display.set_mode((500, 500))
+    screen = pygame.display.set_mode((800, 400))
     pygame.display.set_caption('hacker kart')
     pygame.mouse.set_visible(0)
 
@@ -148,6 +147,8 @@ def main():
             elif event.type == KEYDOWN:
                 if event.key == K_a:
                     kart.jump()
+                if event.key == K_SPACE:
+                    kart.reset()
 
         if keys[K_LEFT]:
             kart.turn(1)

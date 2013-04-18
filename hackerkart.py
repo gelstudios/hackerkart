@@ -25,7 +25,7 @@ class Kart(pygame.sprite.Sprite):
         self.original_rect = self.rect
 
         self.speed = 0.0
-        self.max_speed = 60.0
+        self.max_speed = 30.0
         self.accel_rate = 0.5
         self.brake_rate = 1.1
         self.coast_rate = 1.025
@@ -34,7 +34,7 @@ class Kart(pygame.sprite.Sprite):
         self.last_position = (0,0)
         
         self.heading = 0
-        self.last_heading = 0
+        self.last_heading = [0,0,0,0]
         self.turn_speed = 0
         self.turn_max = 20
         self.turn_rate = 0.5
@@ -52,13 +52,13 @@ class Kart(pygame.sprite.Sprite):
             self.coast()
 
     def brake(self):
-        if self.speed >= 1.0:
+        if self.speed >= 1.0 :
             self.speed /= self.brake_rate
         else:
             self.speed = 0
 
     def coast(self):
-        if self.speed >= 1.0:
+        if self.speed >= 2.5 :
             self.speed /= self.coast_rate
         else:
             self.speed = 0
@@ -66,9 +66,18 @@ class Kart(pygame.sprite.Sprite):
     def turn(self, direction):
         if self.turn_speed < self.turn_max:
             self.turn_speed += self.turn_rate
-        self.last_heading = self.heading
+        self.last_heading.insert(0, self.heading)
+        self.last_heading.pop()
         self.heading += self.turn_speed/2 * direction
         self.heading %= 360
+
+    def decay(self):
+        self.last_heading.insert(0, self.heading)
+        self.last_heading.pop()
+        if self.turn_speed > 1.0:
+            self.turn_speed /= 2
+        else:
+            self.turn_speed = 0
 
     def _spin(self):
         self.speed = 0
@@ -80,8 +89,9 @@ class Kart(pygame.sprite.Sprite):
 
     def _move(self):
         self.last_position = self.position
-        amt_x = self.speed/2 * math.cos( math.radians(self.heading) )
-        amt_y = self.speed/2 * math.sin( math.radians(self.heading) )
+        heading = self.last_heading[len(self.last_heading)-1]
+        amt_x = self.speed/2 * math.cos( math.radians(heading) )
+        amt_y = self.speed/2 * math.sin( math.radians(heading) )
         newpos = self.rect.move((amt_x , -amt_y)) #i dont know why amt_y needs to be negative!
         self.rect = newpos
 
@@ -139,6 +149,7 @@ class Tile(pygame.sprite.Sprite):
         self.anim = tile['anim'] #load animation frames, and change the update method
         if self.anim:
             self.frame = 0
+            self.wait = 0
             self.frames = []
             for f in range(tile['frames']):
                 filename = tile['base_fname'] + str(f) + tile['ext']
@@ -149,17 +160,24 @@ class Tile(pygame.sprite.Sprite):
 
         self.status = None
 
-    def _anim_update(self):
-        #get frames, load the next frame when this method is called
-        if self.anim == 1:
+    def _bumpframe(self, frame_number=5):
+        """quick function to increment frame counter and draw to tile surface every frame_number times"""
+        if self.wait == frame_number:
             self.image = self.frames[self.frame]
+            if self.frame == len(self.frames)-1:
+                self.frame = 0
+            else:
+                self.frame += 1
+            self.wait = 0
+        else:
+            self.wait += 1 #=none
+
+    def _anim_update(self):
+        if self.anim == 1:
+            self._bumpframe()
+        
         if self.anim == 2:
             pass
-
-        if self.frame == len(self.frames)-1:
-            self.frame = 0
-        else:
-            self.frame += 1
 
     def update(self):
         pass
@@ -193,7 +211,7 @@ def main():
 
 #Prepare Game Objects
     clock = pygame.time.Clock()
-    tile = Tile()
+    tile = Tile() #demo tile
     track = Track()
     kart = Kart()
     allsprites = pygame.sprite.RenderPlain((kart, tile, track))
@@ -222,7 +240,7 @@ def main():
         elif keys[K_RIGHT]:
             kart.turn(-1)
         else:
-            kart.turn_speed=0
+            kart.decay()
 
         if keys[K_UP]:
             kart.accel()
@@ -230,11 +248,7 @@ def main():
             kart.brake()
         else:
             kart.coast()
-            
-#       for racer in racers:
-#                   if track.terrain(racer):
-#                      chimp.punched()
-#                 else:
+
         allsprites.update()
 
     #Draw Everything

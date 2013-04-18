@@ -101,7 +101,7 @@ class Kart(pygame.sprite.Sprite):
 class Track(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('track.png', -1)
+        self.image, self.rect = load_image('track.png',)
         self.rotation = 0
         self.walls = []
         self.startposition = (0,0)
@@ -129,20 +129,21 @@ class Tile(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
         global tileatlas
         tile=tileatlas.get(tile_type, 'default')
-        filename = tile['base_fname'] + 0 + tile['ext']
+        filename = tile['base_fname'] + str(0) + tile['ext']
 
         self.image, self.rect = load_image(filename,)
         self.tile_type = tile_type
         self.collision_type = tile['collision_type']
         self.speed_mod = tile['speed_mod']
 
-        self.animated = tile['anim'] #load animation frames, and change the update method
-        if self.animated:
+        self.anim = tile['anim'] #load animation frames, and change the update method
+        if self.anim:
             self.frame = 0
             self.frames = []
             for f in range(tile['frames']):
                 filename = tile['base_fname'] + str(f) + tile['ext']
-                frames.append(self.image, self.rect = load_image(filename,))
+                image, rect = load_image(filename,)
+                self.frames.append(image)
 
             self.update = self._anim_update
 
@@ -150,15 +151,15 @@ class Tile(pygame.sprite.Sprite):
 
     def _anim_update(self):
         #get frames, load the next frame when this method is called
-        if self.anim = 1:
-            self.image, = self.frames[self.frame]
-        if self.anim = 2:
+        if self.anim == 1:
+            self.image = self.frames[self.frame]
+        if self.anim == 2:
             pass
 
-        if self.frame = len(frames)
+        if self.frame == len(self.frames)-1:
             self.frame = 0
-        else self.frame += 1
-        pass
+        else:
+            self.frame += 1
 
     def update(self):
         pass
@@ -239,6 +240,7 @@ def main():
     #Draw Everything
         screen.blit(background, (0, 0))
         allsprites.draw(screen)
+        pygame.sprite.RenderPlain((tile)).draw(screen)
         pygame.sprite.RenderPlain((kart)).draw(screen)
         pygame.display.flip()
 

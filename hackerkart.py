@@ -17,16 +17,26 @@ def load_image(name, colorkey=None):
         image.set_colorkey(colorkey, RLEACCEL)
     return image, image.get_rect()
 
+kartatlas={
+'blue':{'base_fname':'bluekart', 'ext':'.png', 'anim':0, 'frames':1, 'max_speed':20.0, 'accel_rate':0.3, 'turn_max':16, 'turn_rate':0.5},
+'red':{'base_fname':'redkart', 'ext':'.png', 'anim':0, 'frames':1, 'max_speed':30.0, 'accel_rate':0.5, 'turn_max':20, 'turn_rate':0.5},
+}
+
 class Kart(pygame.sprite.Sprite):
-    def __init__(self, img_name='kart.bmp'):
+    def __init__(self, kart_type='blue'):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image(img_name, -1)
+        global kartatlas
+        kart = kartatlas.get(kart_type, 'blue')
+        filename = kart['base_fname'] + kart['ext'] 
+
+        self.image, self.rect = load_image(filename,-1)
         self.original = self.image
         self.original_rect = self.rect
+        self.anim = kart['anim']
 
         self.speed = 0.0
-        self.max_speed = 30.0
-        self.accel_rate = 0.5
+        self.max_speed = kart['max_speed']
+        self.accel_rate = kart['accel_rate']
         self.brake_rate = 1.1
         self.coast_rate = 1.025
         
@@ -34,16 +44,16 @@ class Kart(pygame.sprite.Sprite):
         self.last_position = (0,0)
         
         self.heading = 0
-        self.last_heading = [0,0,0,0]
+        self.last_heading = [0,0,0] #this is ugly
         self.turn_speed = 0
-        self.turn_max = 20
-        self.turn_rate = 0.5
+        self.turn_max = kart['turn_max']
+        self.turn_rate = kart['turn_rate']
 
         self.jumping = 0
         self.spinning = 0
 
     def reset(self):
-        self.rect = self.original_rect
+        self.rect.center = (500,250) #was  = self.original_rect
 
     def accel(self):
         if self.speed < self.max_speed:
@@ -109,9 +119,10 @@ class Kart(pygame.sprite.Sprite):
             self._move()
 
 class Track(pygame.sprite.Sprite):
+    """placeholder track image"""
     def __init__(self):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('track.png',)
+        self.image, self.rect = load_image('track2.png',)
         self.rotation = 0
         self.walls = []
         self.startposition = (0,0)
@@ -133,6 +144,9 @@ tileatlas = {
 'check':{'base_fname':'check', 'ext':'.png', 'anim':0, 'frames':1, 'collision_type':0, 'speed_mod':1.0},
 'fline':{'base_fname':'fline', 'ext':'.png', 'anim':0, 'frames':1, 'collision_type':0, 'speed_mod':1.0},
 }
+
+class SpriteSheet(object):
+    pass
 
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type='default'):
@@ -185,7 +199,7 @@ class Tile(pygame.sprite.Sprite):
 class Hud(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
-        self.image, self.rect = load_image('hud.bmp', -1)
+        self.image, self.rect = load_image('hud.png', -1)
 
     def update(self):
         pass
@@ -214,12 +228,13 @@ def main():
     tile = Tile() #demo tile
     track = Track()
     kart = Kart()
-    allsprites = pygame.sprite.RenderPlain((kart, tile, track))
+    allsprites = pygame.sprite.RenderPlain((kart, tile, track)) #need to investigate sprite ordering
 
 #Main Loop
     while 1:
         clock.tick(60)
-        print "speed: " + repr(kart.speed) + " -- heading: " + repr(kart.heading) + " -- turn_speed: " + repr(kart.turn_speed)
+        print "fps: " + str(clock.get_fps()) + " -- spd: " + repr(kart.speed) + " -- hdg: " + repr(kart.heading) + " -- yaw: " + repr(kart.turn_speed)
+
 
         keys = pygame.key.get_pressed() #get keys held down in between frames
 

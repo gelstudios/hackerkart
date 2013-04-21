@@ -145,9 +145,6 @@ tileatlas = {
 'fline':{'base_fname':'fline', 'ext':'.png', 'anim':0, 'frames':1, 'collision_type':0, 'speed_mod':1.0},
 }
 
-class SpriteSheet(object):
-    pass
-
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type='default'):
         pygame.sprite.Sprite.__init__(self) #call Sprite initializer
@@ -175,7 +172,7 @@ class Tile(pygame.sprite.Sprite):
         self.status = None
 
     def _bumpframe(self, frame_number=5):
-        """quick function to increment frame counter and draw to tile surface every frame_number times"""
+        """quick function to increment the frame counter and draw to tile surface every frame_number times"""
         if self.wait == frame_number:
             self.image = self.frames[self.frame]
             if self.frame == len(self.frames)-1:

@@ -44,7 +44,7 @@ class Kart(pygame.sprite.Sprite):
         self.last_position = (0,0)
         
         self.heading = 0
-        self.last_heading = [0,0,0] #this is ugly
+        self.last_heading = [0]*4 #this is ugly
         self.turn_speed = 0
         self.turn_max = kart['turn_max']
         self.turn_rate = kart['turn_rate']
@@ -71,6 +71,7 @@ class Kart(pygame.sprite.Sprite):
         if self.speed >= 2.5 :
             self.speed /= self.coast_rate
         else:
+
             self.speed = 0
 
     def turn(self, direction):
@@ -224,7 +225,7 @@ def main():
     clock = pygame.time.Clock()
     tile = Tile() #demo tile
     track = Track()
-    kart = Kart()
+    kart = Kart('blue')
     allsprites = pygame.sprite.RenderPlain((kart, tile, track)) #need to investigate sprite ordering
 
 #Main Loop
